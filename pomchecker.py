@@ -62,6 +62,8 @@ logger = open("session.log", "w")
 starting_dir = "."
 stop_dir = "xxxxxx"
 
+header_lines = 30*"-"
+
 directories = Queue.Queue()
 directories.put(starting_dir)
 
@@ -74,5 +76,7 @@ while not directories.empty():
     pom_file = current_dir + os.path.sep + "pom.xml"
     pom_template_file = current_dir + os.path.sep + "pom.template.xml"
 
+    logger.write(header_lines)
     logger.write("DIR: [{0}]\n".format(os.path.abspath()))
+    logger.write(header_lines)
 
