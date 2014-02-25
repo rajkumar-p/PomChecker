@@ -67,9 +67,10 @@ logger = open("session.log", "w")
 starting_dir = "."
 stop_dir = "xxxxxx"
 
-header_lines = 30*"-"
-
 file_newline = "\n"
+
+header_lines = 30*"-"
+header_lines_with_newline = 30*"-" + file_newline
 
 tags_not_equal = "Tags are not equal"
 node_text_not_equal = "Node text are not equal"
@@ -84,10 +85,16 @@ stopping_at_dir = "STOPPING AT DIR - {0}.{1}"
 
 error_message = "{0}. Diff tag(s) - {1}, {2}.{3}"
 
+error_msg_both_not_present = "Pom and pom template not present.{0}"
+error_msg_pom_not_present = "Pom not present.{0}"
+error_msg_pom_template_not_present = "Pom template not present.{0}"
+
 pom_not_present = []
 pomtemplate_not_present = []
-
 both_not_present = []
+
+both_docs_same = []
+both_docs_different = []
 
 directories = Queue.Queue()
 directories.put(os.path.abspath(starting_dir))
@@ -99,12 +106,18 @@ while not directories.empty():
         logger.write(stopping_at_dir.format(current_dir, file_newline))
         exit(0)
 
+    # Push the child directories into the directories Q
+    for d in [os.path.join(current_dir, directoy)
+                for directoy in os.listdir(current_dir)
+                    if os.path.isdir(current_dir + os.path.sep + directoy)]:
+        directories.put(d)
+
     pom_file = current_dir + os.path.sep + "pom.xml"
     pom_template_file = current_dir + os.path.sep + "pom.template.xml"
 
-    logger.write(header_lines)
+    logger.write(header_lines_with_newline)
     logger.write(dir_banner.format(current_dir, file_newline))
-    logger.write(header_lines)
+    logger.write(header_lines_with_newline)
 
     pom_present = True
     pom_template_present = True
@@ -121,23 +134,27 @@ while not directories.empty():
     except IOError:
         pom_template_present = False
 
-    if (not pom_present) and (not pom_template_present):
+    if not pom_present and not pom_template_present:
+        logger.write(error_msg_both_not_present.format(file_newline))
+        logger.write(1*file_newline)
         both_not_present.append(current_dir)
         continue
     elif not pom_present:
+        logger.write(error_msg_pom_not_present.format(file_newline))
+        logger.write(1*file_newline)
         pom_not_present.append(current_dir)
         continue
     elif not pom_template_present:
+        logger.write(error_msg_pom_template_not_present.format(file_newline))
+        logger.write(1*file_newline)
         pomtemplate_not_present.append(current_dir)
         continue
 
-    if (aresame(pom_file, pom_template_file)):
+    if (aresame(pom_file, pom_template_file, logger)):
+        both_docs_same.append(current_dir)
         logger.write(files_same.format(file_newline))
     else:
+        both_docs_different.append(current_dir)
         logger.write(files_not_same.format(file_newline))
 
-    # Push the child directories into the directories Q
-    for d in [os.path.join(current_dir, directoy) 
-                for directoy in os.listdir(current_dir)
-                    if os.path.isdir(current_dir + os.path.sep + directoy)]:
-        directories.put(d)
+    logger.write(1*file_newline)
