@@ -80,6 +80,8 @@ dir_banner = "DIR: {0}{1}"
 files_same = "Both the files are same.{0}"
 files_not_same = "Pom and Pom template are different.{0}"
 
+stopping_at_dir = "STOPPING AT DIR - {0}.{1}"
+
 error_message = "{0}. Diff tag(s) - {1}, {2}.{3}"
 
 pom_not_present = []
@@ -88,19 +90,20 @@ pomtemplate_not_present = []
 both_not_present = []
 
 directories = Queue.Queue()
-directories.put(starting_dir)
+directories.put(os.path.abspath(starting_dir))
 
 while not directories.empty():
     current_dir = directories.get()
 
     if (current_dir == stop_dir):
+        logger.write(stopping_at_dir.format(current_dir, file_newline))
         exit(0)
 
     pom_file = current_dir + os.path.sep + "pom.xml"
     pom_template_file = current_dir + os.path.sep + "pom.template.xml"
 
     logger.write(header_lines)
-    logger.write(dir_banner.format(os.path.abspath(), file_newline))
+    logger.write(dir_banner.format(current_dir, file_newline))
     logger.write(header_lines)
 
     pom_present = True
@@ -132,3 +135,9 @@ while not directories.empty():
         logger.write(files_same.format(file_newline))
     else:
         logger.write(files_not_same.format(file_newline))
+
+    # Push the child directories into the directories Q
+    for d in [os.path.join(current_dir, directoy) 
+                for directoy in os.listdir(current_dir)
+                    if os.path.isdir(current_dir + os.path.sep + directoy)]:
+        directories.put(d)
