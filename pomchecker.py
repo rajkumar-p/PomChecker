@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import Queue
 import string
 import os.path
+import argparse
 
 def AreSame(pom_file, pom_template_file, logger):
     node1 = ET.parse(pom_file).getroot()
@@ -68,8 +69,41 @@ def WriteLineToLog(logger, string_to_be_written):
     WriteToLog(logger, string_to_be_written)
     WriteToLog(logger, "\n")
 
+def printList(li):
+    for item in li:
+        print item
+
+def printHeader(title):
+    print title
+    print "-" * len(title)
+
 # Load the default settings
 logger = open("session.log", "w")
+
+# Parse the command line arguments
+arguments_parser = argparse.ArgumentParser()
+
+arguments_parser.add_argument("-1", "--pom_not_present",
+                              action="store_true",
+                              help="Shows the list of directories where pom files are not present")
+
+arguments_parser.add_argument("-2", "--pomtemplate_not_present",
+                              action="store_true",
+                              help="Shows the list of directories where pom template files are not present")
+
+arguments_parser.add_argument("-3", "--both_not_present",
+                              action="store_true",
+                              help="Shows the list of directories where pom and pom template files are not present")
+
+arguments_parser.add_argument("-4", "--both_same",
+                              action="store_true",
+                              help="Shows the list of directories where pom and pom template files are the same")
+
+arguments_parser.add_argument("-5", "--both_different",
+                              action="store_true",
+                              help="Shows the list of directories where pom and pom template files are the not the same")
+
+commandline_arguments = arguments_parser.parse_args()
 
 starting_dir = "."
 stop_dir = "xxxxxx"
@@ -98,8 +132,8 @@ pom_not_present_list = []
 pomtemplate_not_present_list = []
 both_not_present_list = []
 
-both_docs_same_list = []
-both_docs_different_list = []
+both_same_list = []
+both_different_list = []
 
 directories = Queue.Queue()
 directories.put(os.path.abspath(starting_dir))
@@ -156,10 +190,35 @@ while not directories.empty():
         continue
 
     if (AreSame(pom_file, pom_template_file, logger)):
-        both_docs_same_list.append(current_dir)
+        both_same_list.append(current_dir)
         WriteLineToLog(logger, error_msg_files_same)
     else:
-        both_docs_different_list.append(current_dir)
+        both_different_list.append(current_dir)
         WriteLineToLog(logger, error_msg_files_not_same)
 
     WriteLineToLog(logger, "")
+
+    if commandline_arguments.pom_not_present:
+        printHeader("Poms not present")
+        printList(pom_not_present_list)
+        print("")
+
+    if commandline_arguments.pomtemplate_not_present:
+        printHeader("Pom templates not present")
+        printList(pomtemplate_not_present_list)
+        print("")
+
+    if commandline_arguments.both_not_present:
+        printHeader("Pom and pom template not present")
+        printList(both_not_present_list)
+        print("")
+
+    if commandline_arguments.both_same:
+        printHeader("Pom and pom template same")
+        printList(both_same_list)
+        print("")
+
+    if commandline_arguments.both_different:
+        printHeader("Pom and pom template different")
+        printList(both_different_list)
+        print("")
