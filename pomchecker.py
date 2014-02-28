@@ -4,18 +4,18 @@ import string
 import os.path
 import argparse
 
-def AreSame(pom_file, pom_template_file, logger):
+def areSame(pom_file, pom_template_file, logger):
     node1 = ET.parse(pom_file).getroot()
     node2 = ET.parse(pom_template_file).getroot()
 
     q = Queue.Queue()
-    q.put(zip(node1, node2)[0])
+    q.put((node1, node2))
 
     while not q.empty():
         (node1, node2) = q.get()
 
         if node1.tag != node2.tag:
-            WriteLineToLog(logger, main_error_msg.format(error_msg_tags_not_equal,
+            writeLineToLog(logger, main_error_msg.format(error_msg_tags_not_equal,
                                               node1.tag, node2.tag))
             return False
 
@@ -26,7 +26,7 @@ def AreSame(pom_file, pom_template_file, logger):
             node2.text = node2.text.strip(string.whitespace)
 
         if node1.text != node2.text:
-            WriteLineToLog(logger, main_error_msg.format(error_msg_node_text_not_equal,
+            writeLineToLog(logger, main_error_msg.format(error_msg_node_text_not_equal,
                                               node1.tag, node2.tag))
             return False
 
@@ -37,12 +37,12 @@ def AreSame(pom_file, pom_template_file, logger):
             if (node1_attributes[key] == node2_attributes[key]):
                 del node2_attributes[key]
             else:
-                WriteLineToLog(logger, main_error_msg.format(error_msg_diff_in_attributes,
+                writeLineToLog(logger, main_error_msg.format(error_msg_diff_in_attributes,
                                                   node1.tag, node2.tag))
                 return False
 
         if (len(node2_attributes) != 0):
-            WriteLineToLog(logger, main_error_msg.format(error_msg_diff_in_attributes,
+            writeLineToLog(logger, main_error_msg.format(error_msg_diff_in_attributes,
                                               node1.tag, node2.tag))
             return False
 
@@ -50,24 +50,24 @@ def AreSame(pom_file, pom_template_file, logger):
         node2_children = list(node2)
 
         if (len(node1_children) != len(node2_children)):
-            WriteLineToLog(logger, main_error_msg.format(error_msg_no_children_diff,
+            writeLineToLog(logger, main_error_msg.format(error_msg_no_children_diff,
                                               node1.tag, node2.tag))
             return False
         else:
-            node1_children.sort()
-            node2_children.sort()
+            node1_children.sort(key=lambda node: node.tag)
+            node2_children.sort(key=lambda node: node.tag)
 
             for item in zip(node1_children, node2_children):
                 q.put(item)
 
     return True
 
-def WriteToLog(logger, string_to_be_written):
+def writeToLog(logger, string_to_be_written):
     logger.write(string_to_be_written)
 
-def WriteLineToLog(logger, string_to_be_written):
-    WriteToLog(logger, string_to_be_written)
-    WriteToLog(logger, "\n")
+def writeLineToLog(logger, string_to_be_written):
+    writeToLog(logger, string_to_be_written)
+    writeToLog(logger, "\n")
 
 def printList(li):
     for item in li:
@@ -142,7 +142,7 @@ while not directories.empty():
     current_dir = directories.get()
 
     if (current_dir == stop_dir):
-        WriteLineToLog(logger, stopping_at_dir.format(current_dir))
+        writeLineToLog(logger, stopping_at_dir.format(current_dir))
         exit(0)
 
     # Push the child directories into the directories Q
@@ -154,9 +154,9 @@ while not directories.empty():
     pom_file = current_dir + os.path.sep + "pom.xml"
     pom_template_file = current_dir + os.path.sep + "pom.template.xml"
 
-    WriteLineToLog(logger, header_lines_with_newline)
-    WriteLineToLog(logger, dir_banner.format(current_dir))
-    WriteLineToLog(logger, header_lines_with_newline)
+    writeLineToLog(logger, header_lines_with_newline)
+    writeLineToLog(logger, dir_banner.format(current_dir))
+    writeLineToLog(logger, header_lines_with_newline)
 
     pom_present_flag = True
     pom_template_present_flag = True
@@ -174,51 +174,51 @@ while not directories.empty():
         pom_template_present_flag = False
 
     if not pom_present_flag and not pom_template_present_flag:
-        WriteLineToLog(logger, error_msg_both_not_present)
-        WriteLineToLog(logger, "")
+        writeLineToLog(logger, error_msg_both_not_present)
+        writeLineToLog(logger, "")
         both_not_present_list.append(current_dir)
         continue
     elif not pom_present_flag:
-        WriteLineToLog(logger, error_msg_pom_not_present)
-        WriteLineToLog(logger, "")
+        writeLineToLog(logger, error_msg_pom_not_present)
+        writeLineToLog(logger, "")
         pom_not_present_list.append(current_dir)
         continue
     elif not pom_template_present_flag:
-        WriteLineToLog(logger, error_msg_pom_template_not_present)
-        WriteLineToLog(logger, "")
+        writeLineToLog(logger, error_msg_pom_template_not_present)
+        writeLineToLog(logger, "")
         pomtemplate_not_present_list.append(current_dir)
         continue
 
-    if (AreSame(pom_file, pom_template_file, logger)):
+    if (areSame(pom_file, pom_template_file, logger)):
         both_same_list.append(current_dir)
-        WriteLineToLog(logger, error_msg_files_same)
+        writeLineToLog(logger, error_msg_files_same)
     else:
         both_different_list.append(current_dir)
-        WriteLineToLog(logger, error_msg_files_not_same)
+        writeLineToLog(logger, error_msg_files_not_same)
 
-    WriteLineToLog(logger, "")
+    writeLineToLog(logger, "")
 
-    if commandline_arguments.pom_not_present:
-        printHeader("Poms not present")
-        printList(pom_not_present_list)
-        print("")
+if commandline_arguments.pom_not_present:
+    printHeader("Poms not present")
+    printList(pom_not_present_list)
+    print("")
 
-    if commandline_arguments.pomtemplate_not_present:
-        printHeader("Pom templates not present")
-        printList(pomtemplate_not_present_list)
-        print("")
+if commandline_arguments.pomtemplate_not_present:
+    printHeader("Pom templates not present")
+    printList(pomtemplate_not_present_list)
+    print("")
 
-    if commandline_arguments.both_not_present:
-        printHeader("Pom and pom template not present")
-        printList(both_not_present_list)
-        print("")
+if commandline_arguments.both_not_present:
+    printHeader("Pom and pom template not present")
+    printList(both_not_present_list)
+    print("")
 
-    if commandline_arguments.both_same:
-        printHeader("Pom and pom template same")
-        printList(both_same_list)
-        print("")
+if commandline_arguments.both_same:
+    printHeader("Pom and pom template same")
+    printList(both_same_list)
+    print("")
 
-    if commandline_arguments.both_different:
-        printHeader("Pom and pom template different")
-        printList(both_different_list)
-        print("")
+if commandline_arguments.both_different:
+    printHeader("Pom and pom template different")
+    printList(both_different_list)
+    print("")
