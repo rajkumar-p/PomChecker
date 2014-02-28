@@ -34,14 +34,14 @@ def areSame(pom_file, pom_template_file, logger):
         node2_attributes = node2.attrib
 
         for key in node1_attributes.keys():
-            if (node1_attributes[key] == node2_attributes[key]):
+            if node1_attributes[key] == node2_attributes[key]:
                 del node2_attributes[key]
             else:
                 writeLineToLog(logger, main_error_msg.format(error_msg_diff_in_attributes,
                                                   node1.tag, node2.tag))
                 return False
 
-        if (len(node2_attributes) != 0):
+        if len(node2_attributes) != 0:
             writeLineToLog(logger, main_error_msg.format(error_msg_diff_in_attributes,
                                               node1.tag, node2.tag))
             return False
@@ -49,7 +49,7 @@ def areSame(pom_file, pom_template_file, logger):
         node1_children = list(node1)
         node2_children = list(node2)
 
-        if (len(node1_children) != len(node2_children)):
+        if len(node1_children) != len(node2_children):
             writeLineToLog(logger, main_error_msg.format(error_msg_no_children_diff,
                                               node1.tag, node2.tag))
             return False
@@ -76,6 +76,11 @@ def printList(li):
 def printHeader(title):
     print title
     print "-" * len(title)
+
+def printDirBanner(current_dir):
+    writeLineToLog(logger, len(current_dir)*header_char)
+    writeLineToLog(logger, current_dir)
+    writeLineToLog(logger, len(current_dir)*header_char)
 
 # Load the default settings
 logger = open("session.log", "w")
@@ -108,15 +113,13 @@ commandline_arguments = arguments_parser.parse_args()
 starting_dir = "."
 stop_dir = "xxxxxx"
 
-header_lines = 30*"-"
-header_lines_with_newline = 30*"-"
+header_char = "-"
 
 error_msg_tags_not_equal = "Tags are not equal"
 error_msg_node_text_not_equal = "Node text are not equal"
 error_msg_diff_in_attributes = "Difference in attributes"
 error_msg_no_children_diff = "Number of children not equal"
 
-dir_banner = "DIR: {0}"
 error_msg_files_same = "Both the files are same."
 error_msg_files_not_same = "Pom and Pom template are different."
 
@@ -141,7 +144,7 @@ directories.put(os.path.abspath(starting_dir))
 while not directories.empty():
     current_dir = directories.get()
 
-    if (current_dir == stop_dir):
+    if current_dir == stop_dir:
         writeLineToLog(logger, stopping_at_dir.format(current_dir))
         exit(0)
 
@@ -154,9 +157,7 @@ while not directories.empty():
     pom_file = current_dir + os.path.sep + "pom.xml"
     pom_template_file = current_dir + os.path.sep + "pom.template.xml"
 
-    writeLineToLog(logger, header_lines_with_newline)
-    writeLineToLog(logger, dir_banner.format(current_dir))
-    writeLineToLog(logger, header_lines_with_newline)
+    printDirBanner(current_dir)
 
     pom_present_flag = True
     pom_template_present_flag = True
@@ -189,7 +190,7 @@ while not directories.empty():
         pomtemplate_not_present_list.append(current_dir)
         continue
 
-    if (areSame(pom_file, pom_template_file, logger)):
+    if areSame(pom_file, pom_template_file, logger):
         both_same_list.append(current_dir)
         writeLineToLog(logger, error_msg_files_same)
     else:
