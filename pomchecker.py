@@ -108,6 +108,11 @@ arguments_parser.add_argument("-5", "--both_different",
                               action="store_true",
                               help="Shows the list of directories where pom and pom template files are the not the same")
 
+arguments_parser.add_argument("-nh", "--no_header",
+                              action="store_true",
+                              help="Flag to not show headers in the output")
+
+
 commandline_arguments = arguments_parser.parse_args()
 
 starting_dir = "."
@@ -200,26 +205,36 @@ while not directories.empty():
     writeLineToLog(logger, "")
 
 if commandline_arguments.pom_not_present:
-    printHeader("Poms not present")
+    if not commandline_arguments.no_header:
+        printHeader("Poms not present")
+
     printList(pom_not_present_list)
     print("")
 
 if commandline_arguments.pomtemplate_not_present:
-    printHeader("Pom templates not present")
+    if not commandline_arguments.no_header:
+        printHeader("Pom templates not present")
+
     printList(pomtemplate_not_present_list)
     print("")
 
 if commandline_arguments.both_not_present:
-    printHeader("Pom and pom template not present")
+    if not commandline_arguments.no_header:
+        printHeader("Pom and pom template not present")
+
     printList(both_not_present_list)
     print("")
 
 if commandline_arguments.both_same:
-    printHeader("Pom and pom template same")
+    if not commandline_arguments.no_header:
+        printHeader("Pom and pom template same")
+
     printList(both_same_list)
     print("")
 
 if commandline_arguments.both_different:
-    printHeader("Pom and pom template different")
+    if not commandline_arguments.no_header:
+        printHeader("Pom and pom template different")
+
     printList(both_different_list)
     print("")
