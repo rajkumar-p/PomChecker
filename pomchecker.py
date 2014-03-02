@@ -112,11 +112,26 @@ arguments_parser.add_argument("-nh", "--no_header",
                               action="store_true",
                               help="Flag to not show headers in the output")
 
+arguments_parser.add_argument("-start", "--start_dir",
+                              type=str,
+                              help="The start directory from where to start the check")
+
+arguments_parser.add_argument("-stop", "--stop_dir",
+                              type=str,
+                              help="The directory from where to stop processing it and its children")
+
 
 commandline_arguments = arguments_parser.parse_args()
 
-starting_dir = "."
-stop_dir = "xxxxxx"
+if commandline_arguments.start_dir:
+    starting_dir = commandline_arguments.start_dir
+else:
+    starting_dir = "."
+
+if commandline_arguments.stop_dir:
+    stop_dir = commandline_arguments.stop_dir
+else:
+    stop_dir = "XXXXXXXXXX"
 
 header_char = "-"
 
