@@ -151,7 +151,7 @@ while not directories.empty():
 
     if current_dir == stop_dir:
         writeLineToLog(logger, stopping_at_dir.format(current_dir))
-        exit(0)
+        continue
 
     # Push the child directories into the directories Q
     for d in [os.path.join(current_dir, directoy)
