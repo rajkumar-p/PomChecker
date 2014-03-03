@@ -15,7 +15,7 @@ def areSame(pom_file, pom_template_file, logger):
         (node1, node2) = q.get()
 
         if node1.tag != node2.tag:
-            writeLineToLog(logger, main_error_msg.format(error_msg_tags_not_equal,
+            writeLineToFile(logger, main_error_msg.format(error_msg_tags_not_equal,
                                               node1.tag, node2.tag))
             return False
 
@@ -26,7 +26,7 @@ def areSame(pom_file, pom_template_file, logger):
             node2.text = node2.text.strip(string.whitespace)
 
         if node1.text != node2.text:
-            writeLineToLog(logger, main_error_msg.format(error_msg_node_text_not_equal,
+            writeLineToFile(logger, main_error_msg.format(error_msg_node_text_not_equal,
                                               node1.tag, node2.tag))
             return False
 
@@ -37,12 +37,12 @@ def areSame(pom_file, pom_template_file, logger):
             if node1_attributes[key] == node2_attributes[key]:
                 del node2_attributes[key]
             else:
-                writeLineToLog(logger, main_error_msg.format(error_msg_diff_in_attributes,
+                writeLineToFile(logger, main_error_msg.format(error_msg_diff_in_attributes,
                                                   node1.tag, node2.tag))
                 return False
 
         if len(node2_attributes) != 0:
-            writeLineToLog(logger, main_error_msg.format(error_msg_diff_in_attributes,
+            writeLineToFile(logger, main_error_msg.format(error_msg_diff_in_attributes,
                                               node1.tag, node2.tag))
             return False
 
@@ -50,7 +50,7 @@ def areSame(pom_file, pom_template_file, logger):
         node2_children = list(node2)
 
         if len(node1_children) != len(node2_children):
-            writeLineToLog(logger, main_error_msg.format(error_msg_no_children_diff,
+            writeLineToFile(logger, main_error_msg.format(error_msg_no_children_diff,
                                               node1.tag, node2.tag))
             return False
         else:
@@ -62,12 +62,12 @@ def areSame(pom_file, pom_template_file, logger):
 
     return True
 
-def writeToLog(logger, string_to_be_written):
-    logger.write(string_to_be_written)
+def writeToFile(file_handle, string_to_be_written):
+    file_handle.write(string_to_be_written)
 
-def writeLineToLog(logger, string_to_be_written):
-    writeToLog(logger, string_to_be_written)
-    writeToLog(logger, "\n")
+def writeLineToFile(file_handle, string_to_be_written):
+    writeToFile(file_handle, string_to_be_written)
+    writeToFile(file_handle, "\n")
 
 def printList(li):
     for item in li:
@@ -78,9 +78,9 @@ def printHeader(title):
     print "-" * len(title)
 
 def printDirBanner(current_dir):
-    writeLineToLog(logger, len(current_dir)*header_char)
-    writeLineToLog(logger, current_dir)
-    writeLineToLog(logger, len(current_dir)*header_char)
+    writeLineToFile(logger, len(current_dir)*header_char)
+    writeLineToFile(logger, current_dir)
+    writeLineToFile(logger, len(current_dir)*header_char)
 
 # Load the default settings
 logger = open("session.log", "w")
@@ -165,7 +165,7 @@ while not directories.empty():
     current_dir = directories.get()
 
     if current_dir == stop_dir:
-        writeLineToLog(logger, stopping_at_dir.format(current_dir))
+        writeLineToFile(logger, stopping_at_dir.format(current_dir))
         continue
 
     # Push the child directories into the directories Q
@@ -195,29 +195,29 @@ while not directories.empty():
         pom_template_present_flag = False
 
     if not pom_present_flag and not pom_template_present_flag:
-        writeLineToLog(logger, error_msg_both_not_present)
-        writeLineToLog(logger, "")
+        writeLineToFile(logger, error_msg_both_not_present)
+        writeLineToFile(logger, "")
         both_not_present_list.append(current_dir)
         continue
     elif not pom_present_flag:
-        writeLineToLog(logger, error_msg_pom_not_present)
-        writeLineToLog(logger, "")
+        writeLineToFile(logger, error_msg_pom_not_present)
+        writeLineToFile(logger, "")
         pom_not_present_list.append(current_dir)
         continue
     elif not pom_template_present_flag:
-        writeLineToLog(logger, error_msg_pom_template_not_present)
-        writeLineToLog(logger, "")
+        writeLineToFile(logger, error_msg_pom_template_not_present)
+        writeLineToFile(logger, "")
         pomtemplate_not_present_list.append(current_dir)
         continue
 
     if areSame(pom_file, pom_template_file, logger):
         both_same_list.append(current_dir)
-        writeLineToLog(logger, error_msg_files_same)
+        writeLineToFile(logger, error_msg_files_same)
     else:
         both_different_list.append(current_dir)
-        writeLineToLog(logger, error_msg_files_not_same)
+        writeLineToFile(logger, error_msg_files_not_same)
 
-    writeLineToLog(logger, "")
+    writeLineToFile(logger, "")
 
 if commandline_arguments.pom_not_present:
     if not commandline_arguments.no_header:
