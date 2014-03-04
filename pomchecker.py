@@ -83,7 +83,7 @@ def printDirBanner(current_dir):
     writeLineToFile(logger, len(current_dir)*header_char)
 
 # Load the default settings
-logger = open("session.log", "w")
+logger = open("pomchecker_session.log", "w")
 
 # Parse the command line arguments
 arguments_parser = argparse.ArgumentParser()
