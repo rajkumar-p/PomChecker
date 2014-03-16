@@ -5,15 +5,22 @@ import os.path
 import argparse
 
 def areSame(pom_file, pom_template_file, logger):
+    """
+    Module checks if the two XML passed is syntactically similar
+    input: file1, file2
+    """
     node1 = ET.parse(pom_file).getroot()
     node2 = ET.parse(pom_template_file).getroot()
 
+    # Q that contains the nodes
     q = Queue.Queue()
     q.put((node1, node2))
 
+    # Process all the nodes in the XML tree
     while not q.empty():
         (node1, node2) = q.get()
 
+        # Check if the tags are equal
         if node1.tag != node2.tag:
             writeLineToFile(logger, main_error_msg.format(error_msg_tags_not_equal,
                                               node1.tag, node2.tag))
@@ -25,11 +32,13 @@ def areSame(pom_file, pom_template_file, logger):
         if node2.text != None:
             node2.text = node2.text.strip(string.whitespace)
 
+        # Check if the node text are equal
         if node1.text != node2.text:
             writeLineToFile(logger, main_error_msg.format(error_msg_node_text_not_equal,
                                               node1.tag, node2.tag))
             return False
 
+        # Check if the attributes are similar
         node1_attributes = node1.attrib
         node2_attributes = node2.attrib
 
@@ -46,6 +55,7 @@ def areSame(pom_file, pom_template_file, logger):
                                               node1.tag, node2.tag))
             return False
 
+        # Process the current node's children
         node1_children = list(node1)
         node2_children = list(node2)
 
@@ -63,26 +73,46 @@ def areSame(pom_file, pom_template_file, logger):
     return True
 
 def writeToFile(file_handle, string_to_be_written):
+    """
+    Helper to write to a file
+    input: file_handle, string_to_be_written
+    """
     file_handle.write(string_to_be_written)
 
 def writeLineToFile(file_handle, string_to_be_written):
+    """
+    Helper to write line to file
+    input: file_handle, string_to_be_written
+    """
     writeToFile(file_handle, string_to_be_written)
     writeToFile(file_handle, "\n")
 
 def printList(li):
+    """
+    Helper to print a list
+    input: list
+    """
     for item in li:
         print item
 
 def printHeader(title):
+    """
+    Helper to print the title and a banner below
+    input: title
+    """
     print title
     print "-" * len(title)
 
 def printDirBanner(current_dir):
+    """
+    Helper to print a banner around the current directory
+    input: current_dir
+    """
     writeLineToFile(logger, len(current_dir)*header_char)
     writeLineToFile(logger, current_dir)
     writeLineToFile(logger, len(current_dir)*header_char)
 
-# Load the default settings
+# Logger to be used during run
 logger = open("pomchecker_session.log", "w")
 
 # Parse the command line arguments
@@ -123,6 +153,7 @@ arguments_parser.add_argument("-stop", "--stop_dir",
 
 commandline_arguments = arguments_parser.parse_args()
 
+# Load defaults if not given in the command line arguments
 if commandline_arguments.start_dir:
     starting_dir = commandline_arguments.start_dir
 else:
@@ -135,6 +166,7 @@ else:
 
 header_char = "-"
 
+# Error messages
 error_msg_tags_not_equal = "Tags are not equal"
 error_msg_node_text_not_equal = "Node text are not equal"
 error_msg_diff_in_attributes = "Difference in attributes"
@@ -151,6 +183,7 @@ error_msg_both_not_present = "Pom and pom template not present."
 error_msg_pom_not_present = "Pom not present."
 error_msg_pom_template_not_present = "Pom template not present."
 
+# List to contain the outputs
 pom_not_present_list = []
 pomtemplate_not_present_list = []
 both_not_present_list = []
@@ -158,9 +191,11 @@ both_not_present_list = []
 both_same_list = []
 both_different_list = []
 
+# Directories Q
 directories = Queue.Queue()
 directories.put(os.path.abspath(starting_dir))
 
+# Recuse till no directory left to process
 while not directories.empty():
     current_dir = directories.get()
 
@@ -182,6 +217,7 @@ while not directories.empty():
     pom_present_flag = True
     pom_template_present_flag = True
 
+    # Check if files present
     try:
         with open(pom_file):
             pass
@@ -194,6 +230,7 @@ while not directories.empty():
     except IOError:
         pom_template_present_flag = False
 
+    # Populate output lists
     if not pom_present_flag and not pom_template_present_flag:
         writeLineToFile(logger, error_msg_both_not_present)
         writeLineToFile(logger, "")
@@ -219,6 +256,7 @@ while not directories.empty():
 
     writeLineToFile(logger, "")
 
+# Give output asked
 if commandline_arguments.pom_not_present:
     if not commandline_arguments.no_header:
         printHeader("Poms not present")
