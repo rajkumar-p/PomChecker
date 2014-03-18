@@ -103,14 +103,14 @@ def printHeader(title):
     print title
     print "-" * len(title)
 
-def printDirBanner(current_dir):
+def printDirBanner(file_handle, current_dir):
     """
     Helper to print a banner around the current directory
     input: current_dir
     """
-    writeLineToFile(logger, len(current_dir)*header_char)
-    writeLineToFile(logger, current_dir)
-    writeLineToFile(logger, len(current_dir)*header_char)
+    writeLineToFile(file_handle, len(current_dir)*header_char)
+    writeLineToFile(file_handle, current_dir)
+    writeLineToFile(file_handle, len(current_dir)*header_char)
 
 # Logger to be used during run
 logger = open("pomchecker_session.log", "w")
@@ -212,7 +212,7 @@ while not directories.empty():
     pom_file = current_dir + os.path.sep + "pom.xml"
     pom_template_file = current_dir + os.path.sep + "pom.template.xml"
 
-    printDirBanner(current_dir)
+    printDirBanner(logger, current_dir)
 
     pom_present_flag = True
     pom_template_present_flag = True
