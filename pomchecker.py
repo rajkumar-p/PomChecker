@@ -1,16 +1,17 @@
 import xml.etree.ElementTree as ET
+import re
 import Queue
 import string
 import os.path
 import argparse
 
-def areSame(pom_file, pom_template_file, logger):
+def areSame(pom_contents, pom_template_contents, logger):
     """
     Module checks if the two XML passed is syntactically similar
     input: file1, file2
     """
-    node1 = ET.parse(pom_file).getroot()
-    node2 = ET.parse(pom_template_file).getroot()
+    node1 = ET.fromstring(pom_contents).getroot()
+    node2 = ET.fromstring(pom_template_contents).getroot()
 
     # Q that contains the nodes
     q = Queue.Queue()
@@ -169,7 +170,7 @@ def fileExists(file_name):
         return False
 
 # Logger to be used during run
-logger = open("pomchecker_session.log", "w")
+logger = open("pc_session.log", "w")
 
 # Parse the command line arguments
 arguments_parser = argparse.ArgumentParser()
@@ -205,6 +206,10 @@ arguments_parser.add_argument("-start", "--start_dir",
 arguments_parser.add_argument("-stop", "--stop_dir",
                               type=str,
                               help="The directory from where to stop processing it and its children")
+
+arguments_parser.add_argument("-v", "--version",
+                              type=str,
+                              help="Version that needs to go in place of ${temp.version}")
 
 
 commandline_arguments = arguments_parser.parse_args()
@@ -294,8 +299,21 @@ while not directories.empty():
         pomtemplate_not_present_list.append(current_dir)
         continue
 
+    # Read the pom and pom.template contents
+    pom_fh = open(pom_file, "r")
+    pom_template_fh = open(pom_template_file, "r")
+
+    pom_contents = pom_fh.read()
+    pom_template_contents = pom_template_fh.read()
+
+    # Make the substitution of ${temp.version} in pom.template
+    # The substitution is to be made only if version was passed
+    if commandline_arguments.version:
+        p = re.compile(r"\$\{temp\.version\}")
+        pom_template_subs_contents = p.sub(commandline_arguments.version, pom_template_contents)
+
     # Check if both the files are same
-    if areSame(pom_file, pom_template_file, logger):
+    if areSame(pom_contents, pom_template_contents, logger):
         both_same_list.append(current_dir)
         writeLineToFile(logger, error_msg_files_same)
     else:
