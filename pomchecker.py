@@ -149,11 +149,19 @@ def printDirBanner(file_handle, current_dir):
     writeLineToFile(file_handle, len(current_dir)*header_char)
 
 def getChildrenDirectories(current_dir):
+    """
+    Helper module to get the children directories
+    input: current_dir
+    """
     return [os.path.join(current_dir, directoy)
                 for directoy in os.listdir(current_dir)
                     if os.path.isdir(current_dir + os.path.sep + directoy)]
 
 def fileExists(file_name):
+    """
+    Helper module to check if a file exists
+    input: file_name
+    """
     try:
         with open(pom_file):
             return True
