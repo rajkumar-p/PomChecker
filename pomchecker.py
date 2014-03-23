@@ -21,43 +21,29 @@ def areSame(pom_file, pom_template_file, logger):
         (node1, node2) = q.get()
 
         # Check if the tags are equal
-        if node1.tag != node2.tag:
+        if not tagsAreEqual(node1, node2):
             writeLineToFile(logger, main_error_msg.format(error_msg_tags_not_equal,
                                               node1.tag, node2.tag))
             return False
 
-        if node1.text != None:
-            node1.text = node1.text.strip(string.whitespace)
 
-        if node2.text != None:
-            node2.text = node2.text.strip(string.whitespace)
+        node1.text = stripNodeText(node1.text)
+        node2.text = stripNodeText(node2.text)
 
         # Check if the node text are equal
-        if node1.text != node2.text:
+        if not tagsTextAreEqual(node1, node2):
             writeLineToFile(logger, main_error_msg.format(error_msg_node_text_not_equal,
                                               node1.tag, node2.tag))
             return False
 
         # Check if the attributes are similar
-        node1_attributes = node1.attrib
-        node2_attributes = node2.attrib
-
-        for key in node1_attributes.keys():
-            if node1_attributes[key] == node2_attributes[key]:
-                del node2_attributes[key]
-            else:
-                writeLineToFile(logger, main_error_msg.format(error_msg_diff_in_attributes,
-                                                  node1.tag, node2.tag))
-                return False
-
-        if len(node2_attributes) != 0:
+        if not tagsAttributesAreEqual(node1, node2):
             writeLineToFile(logger, main_error_msg.format(error_msg_diff_in_attributes,
-                                              node1.tag, node2.tag))
-            return False
+                                                node1.tag, node2.tag))
 
         # Process the current node's children
-        node1_children = list(node1)
-        node2_children = list(node2)
+        node1_children = getNodesChildren(node1)
+        node2_children = getNodesChildren(node2)
 
         if len(node1_children) != len(node2_children):
             writeLineToFile(logger, main_error_msg.format(error_msg_no_children_diff,
@@ -71,6 +57,36 @@ def areSame(pom_file, pom_template_file, logger):
                 q.put(item)
 
     return True
+
+def tagsAreEqual(node1, node2):
+    return node1.tag == node2.tag
+
+def tagsTextAreEqual(node1, node2):
+    return node1.text == node2.text
+
+def tagsAttributesAreEqual(node1, node2):
+    node1_attributes = node1.attrib
+    node2_attributes = node2.attrib
+
+    for key in node1_attributes.keys():
+        if node1_attributes[key] == node2_attributes[key]:
+            del node2_attributes[key]
+        else:
+            return False
+
+    if len(node2_attributes) != 0:
+        return False
+
+    return True
+
+def getNodesChildren(node):
+    return list(node)
+
+def stripNodeText(node):
+    if node.text != None:
+        return node.text.strip(string.whitespace)
+    else:
+        return ""
 
 def writeToFile(file_handle, string_to_be_written):
     """
