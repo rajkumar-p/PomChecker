@@ -59,12 +59,24 @@ def areSame(pom_file, pom_template_file, logger):
     return True
 
 def tagsAreEqual(node1, node2):
+    """
+    Helper to check the given nodes
+    input: node1, node2
+    """
     return node1.tag == node2.tag
 
 def tagsTextAreEqual(node1, node2):
+    """
+    Helper to check the given node's text
+    input: node1, node2
+    """
     return node1.text == node2.text
 
 def tagsAttributesAreEqual(node1, node2):
+    """
+    Helper to check the given node's attributes
+    input: node1, node2
+    """
     node1_attributes = node1.attrib
     node2_attributes = node2.attrib
 
@@ -80,9 +92,17 @@ def tagsAttributesAreEqual(node1, node2):
     return True
 
 def getNodesChildren(node):
+    """
+    Helper to get a node's children
+    input: node
+    """
     return list(node)
 
 def stripNodeText(node):
+    """
+    Helper to strip whitespace around a node text
+    input: node
+    """
     if node.text != None:
         return node.text.strip(string.whitespace)
     else:
@@ -127,6 +147,18 @@ def printDirBanner(file_handle, current_dir):
     writeLineToFile(file_handle, len(current_dir)*header_char)
     writeLineToFile(file_handle, current_dir)
     writeLineToFile(file_handle, len(current_dir)*header_char)
+
+def getChildrenDirectories(current_dir):
+    return [os.path.join(current_dir, directoy)
+                for directoy in os.listdir(current_dir)
+                    if os.path.isdir(current_dir + os.path.sep + directoy)]
+
+def fileExists(file_name):
+    try:
+        with open(pom_file):
+            return True
+    except IOError:
+        return False
 
 # Logger to be used during run
 logger = open("pomchecker_session.log", "w")
@@ -220,9 +252,9 @@ while not directories.empty():
         continue
 
     # Push the child directories into the directories Q
-    for d in [os.path.join(current_dir, directoy)
-                for directoy in os.listdir(current_dir)
-                    if os.path.isdir(current_dir + os.path.sep + directoy)]:
+    children = getChildrenDirectories(current_dir)
+
+    for d in children:
         directories.put(d)
 
     pom_file = current_dir + os.path.sep + "pom.xml"
@@ -234,17 +266,8 @@ while not directories.empty():
     pom_template_present_flag = True
 
     # Check if files present
-    try:
-        with open(pom_file):
-            pass
-    except IOError:
-        pom_present_flag = False
-
-    try:
-        with open(pom_template_file):
-            pass
-    except IOError:
-        pom_template_present_flag = False
+    pom_present_flag = fileExists(pom_file)
+    pom_template_present_flag = fileExists(pom_template_file)
 
     # Populate output lists
     if not pom_present_flag and not pom_template_present_flag:
@@ -263,6 +286,7 @@ while not directories.empty():
         pomtemplate_not_present_list.append(current_dir)
         continue
 
+    # Check if both the files are same
     if areSame(pom_file, pom_template_file, logger):
         both_same_list.append(current_dir)
         writeLineToFile(logger, error_msg_files_same)
