@@ -314,6 +314,7 @@ while not directories.empty():
     if commandline_arguments.version:
         p = re.compile(r"\$\{temp\.version\}")
         pom_template_subs_contents = p.sub(commandline_arguments.version, pom_template_contents)
+        pom_template_contents = pom_template_subs_contents
 
     # Check if both the files are same
     if areSame(pom_contents, pom_template_contents, logger):
