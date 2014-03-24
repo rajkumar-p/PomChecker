@@ -8,10 +8,10 @@ import argparse
 def areSame(pom_contents, pom_template_contents, logger):
     """
     Module checks if the two XML passed is syntactically similar
-    input: file1, file2
+    input: pom_contents, pom_template_contents
     """
-    node1 = ET.fromstring(pom_contents).getroot()
-    node2 = ET.fromstring(pom_template_contents).getroot()
+    node1 = ET.fromstring(pom_contents)
+    node2 = ET.fromstring(pom_template_contents)
 
     # Q that contains the nodes
     q = Queue.Queue()
@@ -99,13 +99,13 @@ def getNodesChildren(node):
     """
     return list(node)
 
-def stripNodeText(node):
+def stripNodeText(text):
     """
     Helper to strip whitespace around a node text
     input: node
     """
-    if node.text != None:
-        return node.text.strip(string.whitespace)
+    if text != None:
+        return text.strip(string.whitespace)
     else:
         return ""
 
@@ -168,6 +168,9 @@ def fileExists(file_name):
             return True
     except IOError:
         return False
+
+def getDirName(current_dir):
+    return os.path.basename(current_dir.strip("/\\"))
 
 # Logger to be used during run
 logger = open("pc_session.log", "w")
@@ -260,15 +263,12 @@ directories.put(os.path.abspath(starting_dir))
 while not directories.empty():
     current_dir = directories.get()
 
-    if current_dir == stop_dir:
-        writeLineToFile(logger, stopping_at_dir.format(current_dir))
-        continue
-
     # Push the child directories into the directories Q
     children = getChildrenDirectories(current_dir)
 
     for d in children:
-        directories.put(d)
+        if getDirName(d) != stop_dir:
+            directories.put(d)
 
     pom_file = current_dir + os.path.sep + "pom.xml"
     pom_template_file = current_dir + os.path.sep + "pom.template.xml"
@@ -305,6 +305,9 @@ while not directories.empty():
 
     pom_contents = pom_fh.read()
     pom_template_contents = pom_template_fh.read()
+
+    pom_fh.close()
+    pom_template_fh.close()
 
     # Make the substitution of ${temp.version} in pom.template
     # The substitution is to be made only if version was passed
